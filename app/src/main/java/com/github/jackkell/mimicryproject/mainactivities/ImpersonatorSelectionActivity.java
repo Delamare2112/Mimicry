@@ -12,16 +12,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
+import com.github.jackkell.mimicryproject.Config;
 import com.github.jackkell.mimicryproject.databaseobjects.Impersonator;
 import com.github.jackkell.mimicryproject.R;
 import com.github.jackkell.mimicryproject.listadpaters.ImpersonatorSelectableAdapter;
+
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.TwitterApi;
+import org.scribe.model.OAuthRequest;
+import org.scribe.model.Response;
+import org.scribe.model.Token;
+import org.scribe.model.Verb;
+import org.scribe.model.Verifier;
+import org.scribe.oauth.OAuthService;
 
 import java.util.List;
 
 // This screen is used to load all of the Impersonators from the database and display them on screen in a List View
 // It displays each Impersonator and gives information about their posts
 public class ImpersonatorSelectionActivity extends Activity {
-
+    private static final String PROTECTED_RESOURCE_URL = "https://api.twitter.com/1.1/statuses/user_timeline.json";
     // List of impersonators in the database
     private List<Impersonator> impersonators;
     private RecyclerView rvImpersonatorSelection;
@@ -58,6 +68,19 @@ public class ImpersonatorSelectionActivity extends Activity {
                 setScrollViewChildrenOnClick();
             }
         });
+        Log.d("Trevor", "Test");
+        OAuthService service = new ServiceBuilder().provider(TwitterApi.class)
+                .apiKey(Config.CONSUMER_KEY)
+                .apiSecret(Config.CONSUMER_KEY_SECRET)
+                .build();
+        Token requestToken = service.getRequestToken();
+        String authUrl = service.getAuthorizationUrl(requestToken);
+        Verifier v = new Verifier("verifier you got from the user");
+        Token accessToken = service.getAccessToken(requestToken, v);
+        OAuthRequest request = new OAuthRequest(Verb.GET, "http://api.twitter.com/1/account/verify_credentials.xml");
+        service.signRequest(accessToken, request);
+        Response response = request.send();
+        Log.d("Trevor", response.getBody());
     }
 
     @Override
